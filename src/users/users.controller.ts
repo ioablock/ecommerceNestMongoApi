@@ -4,11 +4,11 @@ import {
   Controller,
   Post,
   Put,
-  Query,
+  Get,
   ValidationPipe,
   Req,
   Res,
-  UsePipes,
+  Param,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
@@ -18,9 +18,9 @@ import { RequestWithUser } from './schema/request-with-user';
 import { Role } from 'src/users/schema/role.enum';
 import RoleGuard from 'src/users/guard/role.guard';
 import { JwtAuthGuard } from '../users/guard/jwt-auth.guard';
-import { AmountIncorrectException } from 'src/common/exception/amount-incorrect-exception';
 import { CreateOrderDto } from './dto/order.dto';
 import { Order } from './schema/order.schema';
+import { AmountDto } from './dto/amount.dto';
 
 @Controller('user')
 export class UsersController {
@@ -36,21 +36,30 @@ export class UsersController {
   @Put('/deposit')
   @UseGuards(RoleGuard(Role.BUYER))
   @UseGuards(JwtAuthGuard)
-  deposit(@Req() request: RequestWithUser, @Query('amount') amount: any) {
-    const allowedValues = [5, 10, 20, 50, 100];
-    if (amount == null || !allowedValues.includes(parseInt(amount))) {
-      throw new AmountIncorrectException();
-    }
-
+  deposit(
+    @Req() request: RequestWithUser,
+    @Body(ValidationPipe) deposit: AmountDto,
+  ) {
     const { user } = request;
 
-    return this.usersService.deposit(user.username, amount);
+    return this.usersService.deposit(user.username, deposit.amount);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  findAll() {
+    return this.usersService.findAll();
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  findOne(@Param('id') id: string) {
+    return this.usersService.getUserById(id);
   }
 
   @Post('/buy')
   @UseGuards(RoleGuard(Role.BUYER))
   @UseGuards(JwtAuthGuard)
-  @UsePipes(new ValidationPipe({ transform: true }))
   async buy(
     @Req() request: RequestWithUser,
     @Body(ValidationPipe) createOrderDto: CreateOrderDto,

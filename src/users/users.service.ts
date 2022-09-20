@@ -65,18 +65,37 @@ export class UsersService {
       orderPrice,
       change: restDeposit,
     });
-    //TODO: Update the product qty
-    return await order.save();
+    await order.save();
+
+    //Update the product qty
+    await this.productsService.decrementProductQuantity(toBuyProduct._id, qty);
+
+    //Update the user deposit
+    await this.decrementUserDeposit(username, orderPrice);
+
+    return order;
   }
 
-  async deposit(username: string, amount: any): Promise<boolean> {
+  async decrementUserDeposit(
+    username: string,
+    orderPrice: number,
+  ): Promise<boolean> {
     let resultUpdate = await this.userModel.updateOne(
       { username: username },
-      { $inc: { deposit: amount } },
+      { $inc: { deposit: -orderPrice } },
     );
     return resultUpdate != null && resultUpdate.modifiedCount === 1
       ? true
       : false;
+  }
+
+  async deposit(username: string, amount: number): Promise<User> {
+    let user = await this.userModel.findOneAndUpdate(
+      { username: username },
+      { $inc: { deposit: amount } },
+    );
+    
+    return user;
   }
 
   async reset(username: string): Promise<User> {
@@ -102,6 +121,10 @@ export class UsersService {
       throw new UnknownUserException();
     }
     return user;
+  }
+
+  async findAll(): Promise<User[]> {
+    return await this.userModel.find();
   }
 
   public async getAuthenticatedUser(username: string, hashedPassword: string) {

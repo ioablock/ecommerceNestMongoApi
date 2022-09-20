@@ -11,7 +11,7 @@ import { format, transports } from 'winston';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({isGlobal: true}),
     MongooseModule.forRoot(mongoConstants.url),
     MongooseModule.forRoot(process.env.MONGO_URL),
     MongooseModule.forRootAsync({
@@ -32,6 +32,7 @@ import { format, transports } from 'winston';
     }),
     ProductsModule,
     UsersModule,
+  
   ],
   controllers: [AppController],
   providers: [AppService],

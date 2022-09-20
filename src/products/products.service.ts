@@ -18,7 +18,6 @@ export class ProductsService {
   ) {}
 
   async create(req: any, createProductDto: CreateProductDto): Promise<Product> {
-    //TODO: Check
     let jwtFromRequest = req.headers.authorization.split(' ')[1];
     let decodedJWT: any = this.jwtService.decode(jwtFromRequest);
     let userId = decodedJWT.id;
@@ -35,6 +34,13 @@ export class ProductsService {
 
   async findOne(id: string): Promise<Product> {
     return await this.productModel.findOne({ _id: id });
+  }
+
+  async decrementProductQuantity(id: string, amount:number): Promise<boolean> {
+    const resultUpdate = await this.productModel.updateOne({ _id: id }, {$inc:{quantity:-amount}});
+    return resultUpdate != null && resultUpdate.modifiedCount === 1
+    ? true
+    : false;
   }
 
   async update(req: any, id: string, item: UpdateProductDto): Promise<boolean> {

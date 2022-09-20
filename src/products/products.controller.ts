@@ -15,11 +15,14 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtAuthGuard } from '../users/guard/jwt-auth.guard';
+import { Role } from 'src/users/schema/role.enum';
+import RoleGuard from 'src/users/guard/role.guard';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @UseGuards(RoleGuard(Role.SELLER))
   @UseGuards(JwtAuthGuard)
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -37,6 +40,7 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
+  @UseGuards(RoleGuard(Role.SELLER))
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(
@@ -47,6 +51,7 @@ export class ProductsController {
     return this.productsService.update(req, id, updateProductDto);
   }
 
+  @UseGuards(RoleGuard(Role.SELLER))
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Req() req: any, @Param('id') id: string) {
